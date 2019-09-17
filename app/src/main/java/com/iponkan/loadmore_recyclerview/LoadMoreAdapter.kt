@@ -14,15 +14,18 @@ abstract class LoadMoreAdapter<T>(protected var datas: MutableList<T>?, protecte
     : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ILoadMoreAdapter {
     protected val normalType = 0
     protected val footType = 1
-    var isFadeTips = false
     private val mHandler = Handler(Looper.getMainLooper())
+    private var hasDrag = false
 
     override fun realLastPosition(): Int {
         return datas!!.size
     }
 
-    override fun fadeTips(): Boolean {
-        return isFadeTips
+    override fun hasMore(): Boolean {
+        if (!hasDrag) {
+            hasDrag = true
+        }
+        return hasMore
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -37,20 +40,22 @@ abstract class LoadMoreAdapter<T>(protected var datas: MutableList<T>?, protecte
         if (getItemViewType(position) == normalType) {
             onBindNormalViewHolder(holder, position)
         } else {
-            (holder as LoadMoreAdapter<*>.FootHolder).tips.visibility = View.VISIBLE
+            val footHolder = holder as LoadMoreAdapter<*>.FootHolder
             if (hasMore) {
-                isFadeTips = false
                 if (datas!!.size > 0) {
-                    holder.tips.text = "正在加载更多... (๑•̀ㅂ•́)و✧"
+                    footHolder.tips.text = "正在加载更多... (๑•̀ㅂ•́)و✧"
+                    footHolder.tips.visibility = View.VISIBLE
                 }
             } else {
                 if (datas!!.size > 0) {
-                    holder.tips.text = "没有更多数据了( ˃᷄˶˶̫˶˂᷅ ) "
-                    mHandler.postDelayed({
-                        holder.tips.visibility = View.GONE
-                        isFadeTips = true
-                        hasMore = true
-                    }, 500)
+                    if (hasDrag) {
+                        footHolder.tips.text = "没有更多数据了( ˃᷄˶˶̫˶˂᷅ ) "
+                        footHolder.tips.visibility = View.VISIBLE
+                        mHandler.postDelayed({
+                            footHolder.tips.visibility = View.GONE
+                        }, 500)
+
+                    }
                 }
             }
         }

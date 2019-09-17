@@ -58,8 +58,7 @@ class LoadMoreRecyclerView : RecyclerView {
                 if (isLoadMore) {
                     return
                 }
-                if ((!iLoadMoreAdapter.fadeTips() && lastVisibleItem + 1 == adapter!!.itemCount)
-                        || (iLoadMoreAdapter.fadeTips() && lastVisibleItem + 2 == adapter!!.itemCount)) {
+                if ((iLoadMoreAdapter.hasMore() && lastVisibleItem + 1 == adapter!!.itemCount)) {
                     iLoadMore.loadDataStartFrom(false, iLoadMoreAdapter.realLastPosition())
                 }
             }
