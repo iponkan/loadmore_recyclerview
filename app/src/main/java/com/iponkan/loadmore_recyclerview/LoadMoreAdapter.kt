@@ -8,29 +8,36 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.iponkan.loadmore_recyclerview.i.ILoadMoreAdapter
 
-class LoadMoreAdapter(private var datas: MutableList<String>?, private val context: Context, private var hasMore: Boolean) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    private val normalType = 0
-    private val footType = 1
+abstract class LoadMoreAdapter<T>(protected var datas: MutableList<T>?, protected val context: Context, protected var hasMore: Boolean)
+    : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ILoadMoreAdapter {
+    protected val normalType = 0
+    protected val footType = 1
     var isFadeTips = false
     private val mHandler = Handler(Looper.getMainLooper())
 
-    val realLastPosition: Int
-        get() = datas!!.size
+    override fun realLastPosition(): Int {
+        return datas!!.size
+    }
+
+    override fun fadeTips(): Boolean {
+        return isFadeTips
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == normalType) {
-            NormalHolder(LayoutInflater.from(context).inflate(R.layout.item, parent, false))
+            return onCreateNormalViewHolder(parent, viewType)
         } else {
             FootHolder(LayoutInflater.from(context).inflate(R.layout.footview, parent, false))
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is NormalHolder) {
-            holder.textView.text = datas!![position]
+        if (getItemViewType(position) == normalType) {
+            onBindNormalViewHolder(holder, position)
         } else {
-            (holder as FootHolder).tips.visibility = View.VISIBLE
+            (holder as LoadMoreAdapter<*>.FootHolder).tips.visibility = View.VISIBLE
             if (hasMore) {
                 isFadeTips = false
                 if (datas!!.size > 0) {
@@ -49,21 +56,19 @@ class LoadMoreAdapter(private var datas: MutableList<String>?, private val conte
         }
     }
 
+    abstract fun onCreateNormalViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder
+    abstract fun onBindNormalViewHolder(holder: RecyclerView.ViewHolder, position: Int)
+
     override fun getItemCount(): Int {
         return datas!!.size + 1
     }
 
-    fun updateList(newDatas: List<String>?, hasMore: Boolean) {
+    fun updateList(newDatas: List<T>?, hasMore: Boolean) {
         if (newDatas != null) {
             datas!!.addAll(newDatas)
         }
         this.hasMore = hasMore
         notifyDataSetChanged()
-    }
-
-    internal inner class NormalHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val textView: TextView = itemView.findViewById(R.id.tv)
-
     }
 
     internal inner class FootHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

@@ -1,9 +1,12 @@
-package com.iponkan.loadmore_recyclerview
+package com.iponkan.demo
 
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.iponkan.loadmore_recyclerview.LoadMoreRecyclerView
+import com.iponkan.loadmore_recyclerview.R
+import com.iponkan.loadmore_recyclerview.i.ILoadMore
 import com.sonicers.commonlib.component.BaseActivity
 import java.util.*
 
@@ -12,8 +15,8 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
     private var recyclerView: LoadMoreRecyclerView? = null
     private var list: MutableList<String>? = null
 
-    private val PAGE_COUNT = 10//分页大小
-    private var adapter: LoadMoreAdapter? = null
+    private val PAGE_COUNT = 10//page size
+    private var adapter: DemoAdapter? = null
     private val mHandler = Handler(Looper.getMainLooper())
     var requestData = false
 
@@ -26,6 +29,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
     }
 
     private fun initData() {
+        // init fake data
         list = ArrayList()
         for (i in 1..40) {
             list!!.add("条目$i")
@@ -53,15 +57,15 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
                 runOnUiThread {
                     dismissLoadingDialog()
                     requestData = false
-                    if (init) {
-                        adapter = LoadMoreAdapter(resList, this, true)
+                    if (init) { // 首次进入adapter需初始化
+                        adapter = DemoAdapter(resList, this, true)
                         recyclerView!!.adapter = adapter
                         recyclerView!!.setILoadMore(this)
                     } else {
-                        if (startIndex == 0) {
+                        if (startIndex == 0) {// 若是下拉刷新，需要清空数据
                             adapter!!.resetDatas()
                         }
-                        recyclerView!!.updateRecyclerView(resList)
+                        updateData(resList)
                     }
                 }
             }
@@ -85,9 +89,21 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
         requestData(false, startIndex)
     }
 
+    /**
+     * 下拉刷新
+     */
     override fun onRefresh() {
         refreshLayout!!.isRefreshing = true
         requestData(false, 0)
         mHandler.postDelayed({ refreshLayout!!.isRefreshing = false }, 1000)
+    }
+
+
+    private fun updateData(newDatas: List<String>) {
+        if (newDatas.isNotEmpty()) {
+            adapter!!.updateList(newDatas, true)
+        } else {
+            adapter!!.updateList(null, false)
+        }
     }
 }
