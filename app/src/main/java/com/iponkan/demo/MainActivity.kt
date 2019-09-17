@@ -77,7 +77,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
                     if (startIndex == 0) {// 若是下拉刷新，需要清空数据
                         adapter!!.resetDatas()
                     }
-                    updateData(resList)
+                    adapter!!.updateList(resList)
                 }
             }
         }
@@ -91,14 +91,5 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
         refreshLayout!!.isRefreshing = true
         loadDataStartFrom(false, 0)
         mHandler.postDelayed({ refreshLayout!!.isRefreshing = false }, 1000)
-    }
-
-
-    private fun updateData(newDatas: List<String>) {
-        if (newDatas.isNotEmpty()) {
-            adapter!!.updateList(newDatas, true)
-        } else {
-            adapter!!.updateList(null, false)
-        }
     }
 }

@@ -74,6 +74,17 @@ abstract class LoadMoreAdapter<T>(protected var datas: MutableList<T>?, protecte
         notifyDataSetChanged()
     }
 
+    /**
+     * @param newDatas 若列表为空自动认为没有更多数据
+     */
+    fun updateList(newDatas: List<T>) {
+        if (newDatas.isNotEmpty()) {
+            updateList(newDatas, true)
+        } else {
+            updateList(null, false)
+        }
+    }
+
     internal inner class FootHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tips: TextView = itemView.findViewById(R.id.tips)
 

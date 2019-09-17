@@ -75,7 +75,7 @@ interface ILoadMore {
                     if (startIndex == 0) {// 若是下拉刷新，需要清空数据
                         adapter!!.resetDatas()
                     }
-                    updateData(resList)
+                    adapter!!.updateList(resList)
                 }
             }
         }
