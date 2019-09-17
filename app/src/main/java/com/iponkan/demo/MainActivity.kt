@@ -18,7 +18,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
     private val PAGE_COUNT = 10//page size
     private var adapter: DemoAdapter? = null
     private val mHandler = Handler(Looper.getMainLooper())
-    var requestData = false
+    var requestData = false//防止重复请求
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +37,12 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
         requestData(true, 0)
     }
 
+    /**
+     * 请求数据
+     *
+     * @param init 是否是页面初始化
+     * @param startIndex 请求数据起始位置
+     */
     private fun requestData(init: Boolean, startIndex: Int) {
         if (requestData) {
             return
@@ -53,7 +59,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
                         resList.add(list!![i])
                     }
                 }
-                Thread.sleep(500)
+                Thread.sleep(500)//模拟网络返回时间
                 runOnUiThread {
                     dismissLoadingDialog()
                     requestData = false

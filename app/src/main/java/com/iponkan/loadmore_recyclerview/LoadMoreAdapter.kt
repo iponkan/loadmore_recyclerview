@@ -63,6 +63,9 @@ abstract class LoadMoreAdapter<T>(protected var datas: MutableList<T>?, protecte
         return datas!!.size + 1
     }
 
+    /**
+     * @param hasMore 更新数据后是否还支持上拉加载
+     */
     fun updateList(newDatas: List<T>?, hasMore: Boolean) {
         if (newDatas != null) {
             datas!!.addAll(newDatas)

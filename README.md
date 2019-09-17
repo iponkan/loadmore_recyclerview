@@ -1,7 +1,123 @@
 # 摘要 #
 
-一个RecyclerView实现上拉加载和下拉加载的Kotlin示例
-参考了 [ryanlijianchang](https://github.com/ryanlijianchang/PullToLoadData-RecyclerView)
+一个RecyclerView实现上拉加载和下拉加载功能，参考了 [ryanlijianchang](https://github.com/ryanlijianchang/PullToLoadData-RecyclerView)
+
+## 特点
+
+- 支持上拉加载和下拉加载
+- 下拉加载可选，添加`SwipeRefreshLayout`即可支持
+
+- Kotlin
+- 兼容首页数据加载
+- 基本Adapter剥离数据结构
+- 上拉加载防止重复请求
+
+# 使用方法
+
+## 布局
+
+```xml
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.iponkan.loadmore_recyclerview.LoadMoreRecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+```
+
+如果需要下拉刷新需添加SwipeRefreshLayout，不使用可以自行去掉
+
+## 代码部分
+
+### 实现`ILoadMore`接口
+
+```kotlin
+    override fun loadDataStartFrom(startIndex: Int) {
+        requestData(false, startIndex)
+    }
+```
+
+### `requestData`方法
+
+requestData是请求数据的方法(通常是网络请求)，看官们可以自己定义。
+
+通常的话第一次进入页面也需要请求一次首页数据，详细可以参见demo
+
+```kotlin
+    /**
+     * 请求数据
+     * 
+     * @param init 是否是页面初始化
+     * @param startIndex 请求数据起始位置
+     */
+    private fun requestData(init: Boolean, startIndex: Int) {
+        if (requestData) {
+            return
+        }
+        if (init) {
+            showLoadingDialog()
+        }
+        requestData = true
+        val resList = ArrayList<String>()
+        val runnable = Runnable {
+            run {
+                for (i in startIndex until startIndex + PAGE_COUNT) {
+                    if (i < list!!.size) {
+                        resList.add(list!![i])
+                    }
+                }
+                Thread.sleep(500)//模拟网络返回时间
+                runOnUiThread {
+                    dismissLoadingDialog()
+                    requestData = false
+                    if (init) { // 首次进入adapter需初始化
+                        adapter = DemoAdapter(resList, this, true)
+                        recyclerView!!.adapter = adapter
+                        recyclerView!!.setILoadMore(this)
+                    } else {
+                        if (startIndex == 0) {// 若是下拉刷新，需要清空数据
+                            adapter!!.resetDatas()
+                        }
+                        updateData(resList)
+                    }
+                }
+            }
+        }
+        Thread(runnable).start()
+
+    }
+```
+
+### 继承LoadMoreAdapter
+
+```kotlin
+class DemoAdapter(datas: MutableList<String>?, context: Context, hasMore: Boolean) : LoadMoreAdapter<String>(datas, context, hasMore) {
+
+    override fun onCreateNormalViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return NormalHolder(LayoutInflater.from(context).inflate(R.layout.item, parent, false))
+    }
+
+    override fun onBindNormalViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder is NormalHolder) {
+            holder.textView.text = datas!![position]
+        }
+    }
+
+    internal inner class NormalHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textView: TextView = itemView.findViewById(R.id.tv)
+
+    }
+}
+```
+
+详细使用可以参见[demo](https://github.com/iponkan/loadmore_recyclerview/tree/master/app/src/main/java/com/iponkan/demo)
+
+
 
 # License
 
