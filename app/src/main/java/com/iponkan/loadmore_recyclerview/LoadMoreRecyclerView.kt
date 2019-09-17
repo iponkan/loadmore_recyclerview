@@ -18,6 +18,7 @@ class LoadMoreRecyclerView : RecyclerView {
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var iLoadMore: ILoadMore
     private lateinit var iLoadMoreAdapter: ILoadMoreAdapter
+    var isLoadMore = false
 
     constructor(context: Context) : this(context, null) {
         //
@@ -54,12 +55,12 @@ class LoadMoreRecyclerView : RecyclerView {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
             if (newState == SCROLL_STATE_IDLE) {
-                if (!iLoadMoreAdapter.fadeTips() && lastVisibleItem + 1 == adapter!!.itemCount) {
-                    iLoadMore.loadDataStartFrom(iLoadMoreAdapter.realLastPosition())
+                if (isLoadMore) {
+                    return
                 }
-
-                if (iLoadMoreAdapter.fadeTips() && lastVisibleItem + 2 == adapter!!.itemCount) {
-                    iLoadMore.loadDataStartFrom(iLoadMoreAdapter.realLastPosition())
+                if ((!iLoadMoreAdapter.fadeTips() && lastVisibleItem + 1 == adapter!!.itemCount)
+                        || (iLoadMoreAdapter.fadeTips() && lastVisibleItem + 2 == adapter!!.itemCount)) {
+                    iLoadMore.loadDataStartFrom(false, iLoadMoreAdapter.realLastPosition())
                 }
             }
         }

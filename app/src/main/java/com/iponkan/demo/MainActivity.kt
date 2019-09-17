@@ -18,7 +18,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
     private val PAGE_COUNT = 10//page size
     private var adapter: DemoAdapter? = null
     private val mHandler = Handler(Looper.getMainLooper())
-    var requestData = false//防止重复请求
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +33,22 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
         for (i in 1..40) {
             list!!.add("条目$i")
         }
-        requestData(true, 0)
+        loadDataStartFrom(true, 0)
+    }
+
+    private fun findView() {
+        refreshLayout = findViewById(R.id.refreshLayout)
+        recyclerView = findViewById(R.id.recyclerView)
+        val resList = ArrayList<String>()
+        adapter = DemoAdapter(resList, this, true)
+        recyclerView!!.adapter = adapter
+        recyclerView!!.setILoadMore(this)
+    }
+
+    private fun initRefreshLayout() {
+        refreshLayout!!.setColorSchemeResources(android.R.color.holo_blue_light, android.R.color.holo_red_light,
+                android.R.color.holo_orange_light, android.R.color.holo_green_light)
+        refreshLayout!!.setOnRefreshListener(this)
     }
 
     /**
@@ -43,14 +57,11 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
      * @param init 是否是页面初始化
      * @param startIndex 请求数据起始位置
      */
-    private fun requestData(init: Boolean, startIndex: Int) {
-        if (requestData) {
-            return
-        }
+    override fun loadDataStartFrom(init: Boolean, startIndex: Int) {
+        recyclerView!!.isLoadMore = true
         if (init) {
             showLoadingDialog()
         }
-        requestData = true
         val resList = ArrayList<String>()
         val runnable = Runnable {
             run {
@@ -62,37 +73,15 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
                 Thread.sleep(500)//模拟网络返回时间
                 runOnUiThread {
                     dismissLoadingDialog()
-                    requestData = false
-                    if (init) { // 首次进入adapter需初始化
-                        adapter = DemoAdapter(resList, this, true)
-                        recyclerView!!.adapter = adapter
-                        recyclerView!!.setILoadMore(this)
-                    } else {
-                        if (startIndex == 0) {// 若是下拉刷新，需要清空数据
-                            adapter!!.resetDatas()
-                        }
-                        updateData(resList)
+                    recyclerView!!.isLoadMore = false
+                    if (startIndex == 0) {// 若是下拉刷新，需要清空数据
+                        adapter!!.resetDatas()
                     }
+                    updateData(resList)
                 }
             }
         }
         Thread(runnable).start()
-
-    }
-
-    private fun findView() {
-        refreshLayout = findViewById(R.id.refreshLayout)
-        recyclerView = findViewById(R.id.recyclerView)
-    }
-
-    private fun initRefreshLayout() {
-        refreshLayout!!.setColorSchemeResources(android.R.color.holo_blue_light, android.R.color.holo_red_light,
-                android.R.color.holo_orange_light, android.R.color.holo_green_light)
-        refreshLayout!!.setOnRefreshListener(this)
-    }
-
-    override fun loadDataStartFrom(startIndex: Int) {
-        requestData(false, startIndex)
     }
 
     /**
@@ -100,7 +89,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
      */
     override fun onRefresh() {
         refreshLayout!!.isRefreshing = true
-        requestData(false, 0)
+        loadDataStartFrom(false, 0)
         mHandler.postDelayed({ refreshLayout!!.isRefreshing = false }, 1000)
     }
 

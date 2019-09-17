@@ -37,14 +37,14 @@
 ### 实现`ILoadMore`接口
 
 ```kotlin
-    override fun loadDataStartFrom(startIndex: Int) {
-        requestData(false, startIndex)
-    }
+interface ILoadMore {
+    fun loadDataStartFrom(init: Boolean, startIndex: Int)
+}
 ```
 
-### `requestData`方法
+### `loadDataStartFrom`方法
 
-requestData是请求数据的方法(通常是网络请求)，看官们可以自己定义。
+`loadDataStartFrom`是请求数据的方法(通常是网络请求)，看官们可以自己定义。
 
 通常的话第一次进入页面也需要请求一次首页数据，详细可以参见demo
 
@@ -55,14 +55,11 @@ requestData是请求数据的方法(通常是网络请求)，看官们可以自�
      * @param init 是否是页面初始化
      * @param startIndex 请求数据起始位置
      */
-    private fun requestData(init: Boolean, startIndex: Int) {
-        if (requestData) {
-            return
-        }
+    override fun loadDataStartFrom(init: Boolean, startIndex: Int) {
+        recyclerView!!.isLoadMore = true
         if (init) {
             showLoadingDialog()
         }
-        requestData = true
         val resList = ArrayList<String>()
         val runnable = Runnable {
             run {
@@ -74,22 +71,15 @@ requestData是请求数据的方法(通常是网络请求)，看官们可以自�
                 Thread.sleep(500)//模拟网络返回时间
                 runOnUiThread {
                     dismissLoadingDialog()
-                    requestData = false
-                    if (init) { // 首次进入adapter需初始化
-                        adapter = DemoAdapter(resList, this, true)
-                        recyclerView!!.adapter = adapter
-                        recyclerView!!.setILoadMore(this)
-                    } else {
-                        if (startIndex == 0) {// 若是下拉刷新，需要清空数据
-                            adapter!!.resetDatas()
-                        }
-                        updateData(resList)
+                    recyclerView!!.isLoadMore = false
+                    if (startIndex == 0) {// 若是下拉刷新，需要清空数据
+                        adapter!!.resetDatas()
                     }
+                    updateData(resList)
                 }
             }
         }
         Thread(runnable).start()
-
     }
 ```
 
