@@ -3,11 +3,14 @@ package com.iponkan.demo
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.iponkan.loadmore_recyclerview.ItemTouchListener
 import com.iponkan.loadmore_recyclerview.LoadMoreRecyclerView
 import com.iponkan.loadmore_recyclerview.R
 import com.iponkan.loadmore_recyclerview.i.ILoadMore
 import com.sonicers.commonlib.component.BaseActivity
+import com.sonicers.commonlib.util.ToastUtil
 import java.util.*
 
 class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoadMore {
@@ -43,6 +46,11 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, ILoad
         adapter = DemoAdapter(resList, this, true)
         recyclerView!!.adapter = adapter
         recyclerView!!.setILoadMore(this)
+        recyclerView!!.addOnItemTouchListener(ItemTouchListener(recyclerView!!, object : ItemTouchListener.SimpleOnItemClickListener() {
+            override fun onItemClick(view: View?, position: Int) {
+                ToastUtil.showToastShort(this@MainActivity, "position: $position")
+            }
+        }))
     }
 
     private fun initRefreshLayout() {
